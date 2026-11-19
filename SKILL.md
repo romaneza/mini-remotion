@@ -37,3 +37,10 @@ JANGAN menulis loop Pillow/FFmpeg manual. Selalu gunakan modul `engine` di direk
 ### 3. Transkripsi Otomatis (`engine.transcribe`)
 - `extract_word_timestamps(audio_path, model_size="base", language="id") -> list[dict]`
 - `group_words_into_chunks(words, max_words_per_chunk=6, max_duration_sec=3.2) -> list[dict]`
+
+### 4. Audio Sintetis (`engine.audiosynth` + `engine.mix`)
+Musik & SFX di-generate dari nol (NumPy/SciPy), TANPA file audio eksternal.
+- CLI render/caption: `--bgm calm|energetic`, `--bgm-volume 0.35`, `--sfx "whoosh@0.5,click@3.2"`
+- SFX tersedia: `whoosh`, `shutter`, `click`, `iris`, `riser` (format `nama@detik:volume=x:pan=y`)
+- BGM otomatis di-duck saat voiceover bicara
+- API: `sfx(name)`, `bgm(duration, mood, volume)`, `mix(vo_path, bgm_mood, bgm_volume, sfx_spec, duration, out_path)`

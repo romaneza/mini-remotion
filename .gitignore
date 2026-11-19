@@ -10,3 +10,5 @@ __pycache__/
 # panduan internal lokal
 panduan_lengkap_setup_pendaftaran_skill_mini_remotion.md
 .DS_Store
+gen_pdf_penjelasan.py
+penjelasan_mini_remotion.pdf

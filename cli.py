@@ -8,6 +8,8 @@ from engine.core import Composition, get_audio_duration
 from engine.sequence import Sequence
 from engine.layout import VStack, Badge, CaptionHighlight
 from engine.transcribe import extract_word_timestamps, group_words_into_chunks
+from engine.mix import mix as mix_audio
+import tempfile, os, subprocess
 
 def load_composition_from_script(script_path: str) -> Composition:
     path = Path(script_path).resolve()
@@ -24,13 +26,36 @@ def load_composition_from_script(script_path: str) -> Composition:
 
     return module.comp
 
+def build_final_audio(args, duration: float) -> str | None:
+    """Rakit audio final (VO + BGM + SFX) jika ada layer audio sintetis. Return path WAV."""
+    if not (args.bgm or args.sfx):
+        return None
+    tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    tmp.close()
+    mix_audio(
+        vo_path=args.audio,
+        bgm_mood=args.bgm,
+        bgm_volume=args.bgm_volume,
+        sfx_spec=args.sfx,
+        duration=duration,
+        out_path=tmp.name,
+    )
+    return tmp.name
+
 def cmd_render(args):
     comp = load_composition_from_script(args.script)
+    duration = get_audio_duration(args.audio) if args.audio else comp.total_duration
+    audio_for_mux = args.audio
+    if args.bgm or args.sfx:
+        print("Merakit audio (VO + BGM + SFX)...")
+        audio_for_mux = build_final_audio(args, duration)
     comp.export(
         output_path=args.out,
-        audio_path=args.audio,
+        audio_path=audio_for_mux,
         fit_to_audio=bool(args.audio)
     )
+    if audio_for_mux and audio_for_mux != args.audio:
+        os.unlink(audio_for_mux)
 
 def cmd_preview(args):
     comp = load_composition_from_script(args.script)
@@ -73,7 +98,13 @@ def cmd_caption(args):
             root=VStack(gap=36, children=children)
         ))
 
-    comp.export(output_path=args.out, audio_path=args.audio, fit_to_audio=True)
+    audio_for_mux = args.audio
+    if args.bgm or args.sfx:
+        print("Merakit audio (VO + BGM + SFX)...")
+        audio_for_mux = build_final_audio(args, total_dur)
+    comp.export(output_path=args.out, audio_path=audio_for_mux, fit_to_audio=True)
+    if audio_for_mux and audio_for_mux != args.audio:
+        os.unlink(audio_for_mux)
 
 def main():
     parser = argparse.ArgumentParser(prog="mini-remotion", description="CLI Engine Motion Graphics Python")
@@ -83,6 +114,9 @@ def main():
     p_render.add_argument("script", help="Path ke file Python yang mendefinisikan variabel `comp`")
     p_render.add_argument("--audio", default=None, help="Path file audio voiceover (opsional)")
     p_render.add_argument("--out", default="output.mp4", help="Nama file output MP4")
+    p_render.add_argument("--bgm", default=None, help="Musik latar sintetis: calm | energetic")
+    p_render.add_argument("--bgm-volume", type=float, default=0.35, help="Volume BGM 0.0-1.0 (default 0.35)")
+    p_render.add_argument("--sfx", default=None, help='Daftar SFX sintetis: "whoosh@0.5,click@3.2"')
     p_render.set_defaults(func=cmd_render)
 
     p_prev = sub.add_parser("preview", help="Render 1 frame PNG untuk cek layout cepat")
@@ -98,6 +132,9 @@ def main():
     p_cap.add_argument("--model", default="base", help="Ukuran model faster-whisper (tiny/base/small)")
     p_cap.add_argument("--lang", default="id", help="Kode bahasa audio (default: id)")
     p_cap.add_argument("--max-words", type=int, default=6, help="Maksimal kata per layar")
+    p_cap.add_argument("--bgm", default=None, help="Musik latar sintetis: calm | energetic")
+    p_cap.add_argument("--bgm-volume", type=float, default=0.35, help="Volume BGM 0.0-1.0 (default 0.35)")
+    p_cap.add_argument("--sfx", default=None, help='Daftar SFX sintetis: "whoosh@0.5,click@3.2"')
     p_cap.set_defaults(func=cmd_caption)
 
     args = parser.parse_args()
