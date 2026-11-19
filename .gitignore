@@ -1,0 +1,12 @@
+# Virtual environment & artefak build
+.venv/
+__pycache__/
+*.pyc
+
+# Media hasil render (jangan commit output)
+*.mp4
+*.png
+
+# panduan internal lokal
+panduan_lengkap_setup_pendaftaran_skill_mini_remotion.md
+.DS_Store
