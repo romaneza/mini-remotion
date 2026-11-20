@@ -4,6 +4,20 @@ Engine *motion graphics* video berbasis **Python** — semacam Remotion, tapi ri
 
 Output: MP4 **H.264 + AAC**, default **1080×1920 (vertical) @ 30fps**.
 
+## Bedanya sama Remotion?
+
+Konsepnya sama — timeline deklaratif, komponen, animasi per-frame — tapi jalur rendernya beda total:
+
+| | Remotion (asli) | Mini-Remotion (ini) |
+|---|---|---|
+| Bahasa | React / TypeScript | Python |
+| Renderer | Headless Chrome (browser full) | Pillow + NumPy langsung ke frame |
+| Dependensi | Node.js + Chromium | 4 paket pip + FFmpeg |
+| Instalasi | Berat (npm + Chromium download) | `pip install pillow numpy faster-whisper scipy` |
+| Biaya AI | Struktur proyek React verbose → boros token kalau ditulis AI | API ringkas 1 file SKILL.md → AI tinggal nulis `scene.py` pendek |
+
+Jadi: **Remotion = React → Chrome → frame; Mini-Remotion = Python → Pillow → frame**. Nama "Mini-" karena ini versi miniatur-nya: subset fitur yang cukup untuk video vertikal faceless, kinetic typography, dan subtitle karaoke. Proyek ini dibuat justru karena alur kerja AI (tulis kode → render) butuh API yang hemat token, bukan ekosistem React yang besar.
+
 ## Fitur
 
 - 🎞️ **Timeline deklaratif** — komposisi dari `Sequence` + transisi fade-out otomatis
